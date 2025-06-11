@@ -7,10 +7,10 @@ const {
   deleteUserById,
 } = require("../service/CRUDServices");
 // const { get } = require("../routes/web");
-
+const User = require("../models/User");
 //GET HOME PAGEPAGE
 const getHomepage = async (req, res) => {
-  let results = await getAllUsers();
+  let results = await User.find({});
   return res.render("home.ejs", { listUsers: results });
 };
 //GET HOME SAMPLESAMPLEPAGE
@@ -24,11 +24,11 @@ const postCreateUser = async (req, res) => {
   let name = req.body.name;
   let city = req.body.city;
 
-  let [results, fields] = await connection.query(
-    `INSERT INTO Users (email,name,city) VALUES (?,?,?)`,
-    [email, name, city]
-  );
-  console.log("results", results);
+  await User.create({
+    email: email,
+    name: name,
+    city: city,
+  });
   res.send("Create user successfully!");
 };
 //GETGET CREATE USER
@@ -38,17 +38,9 @@ const getCreateUser = (req, res) => {
 };
 //GETGET UPDATE USER
 const getUpdateUser = async (req, res) => {
-  // const userId = req.params.id;
-  // let [results, fields] = await connection.query(
-  //   "select * from Users where id = ?",
-  //   [userId]
-  // );
-
-  // let user = results && results.length > 0 ? results[0] : {};
-
-  // res.render("edit.ejs", { user: user });
   const userId = req.params.id;
-  let user = await getUserById(userId); // Sử dụng getUserById từ CRUDServices
+  // let user = await getUserById(userId);
+  let user = await User.findById(userId).exec();
   res.render("edit.ejs", { user: user });
 };
 
@@ -58,27 +50,28 @@ const postUpdateUser = async (req, res) => {
   let name = req.body.name;
   let city = req.body.city;
   let userId = req.body.userId;
-  await updateUserById(email, name, city, userId);
+
+  await User.updateOne(
+    { _id: userId },
+    { email: email, name: name, city: city }
+  );
   res.redirect("/");
 };
 //POST DELETE USER
 const postDeleteUser = async (req, res) => {
-  // const userId = req.params.id;
-  // // let user = await getUserById(userId);
-  // let [results, fields] = await connection.query(
-  //   "select * from Users where id = ?",
-  //   [userId]
-  // );
-
-  // let user = results && results.length > 0 ? results[0] : {};
-  // res.render("delete.ejs", { user: user });
   const userId = req.params.id;
-  let user = await getUserById(userId); // Sử dụng getUserById từ CRUDServices
+  // let user = await getUserById(userId);
+  let user = await User.findById(userId).exec();
+
   res.render("delete.ejs", { user: user });
 };
 const postHandleDeleteUser = async (req, res) => {
   const id = req.body.userId;
-  await deleteUserById(id);
+  // await deleteUserById(id);
+  let result = await User.deleteOne({
+    _id: id,
+  });
+  console.log("result", result);
   res.redirect("/");
 };
 module.exports = {
